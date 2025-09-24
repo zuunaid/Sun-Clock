@@ -5,6 +5,8 @@
   <title>Sun Clock</title>
   <!-- SunCalc CDN -->
   <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0f14">
   <style>
     :root {
       --bg: #0b0f14;
@@ -615,5 +617,12 @@ a { color: var(--accent); text-decoration: none; }
   initLocationFlow();
   startLoop();
 })();
-</script></body>
+</script>
+  <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+</script>
+</body>
 </html>
+
