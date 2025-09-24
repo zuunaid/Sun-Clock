@@ -1,0 +1,619 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sun Clock</title>
+  <!-- SunCalc CDN -->
+  <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #111722;
+      --muted: #6e7a8a;
+      --accent: #53b7ff;
+      --accent-2: #ffd166;
+      --ok: #6ee7b7;
+      --warn: #fbbf24;
+      --bad: #ef4444;
+      --ring: rgba(83,183,255,0.3);
+      --shadow: 0 10px 30px rgba(0,0,0,0.4);
+      --radius: 18px;
+    }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% -10%, #0f172a 0, #0b0f14 45%);
+      color: #e5e7eb;
+    }
+    .wrap { max-width: 1050px; margin: 32px auto; padding: 0 16px; }
+    .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }.card { background: var(--card); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.05); }
+.title { font-weight: 700; letter-spacing: 0.2px; margin: 0 0 10px; font-size: 15px; color: #cbd5e1; text-transform: uppercase; }
+
+.clock { display:flex; align-items:center; justify-content:space-between; gap: 16px; }
+.digits { font-variant-numeric: tabular-nums; font-size: clamp(44px, 8vw, 88px); font-weight: 800; letter-spacing: 3px; line-height: 1; }
+.sub { color: var(--muted); font-size: 14px; }
+.badges { display:flex; gap:8px; flex-wrap:wrap; }
+.badge { border-radius: 999px; padding: 6px 10px; font-size: 12px; border:1px solid rgba(255,255,255,0.08); background:#0d131e; }
+.badge.ok { color: var(--ok); border-color: rgba(110,231,183,.25); }
+.badge.warn { color: var(--warn); border-color: rgba(251,191,36,.25); }
+
+.band { position: relative; height: 18px; border-radius: 999px; overflow: hidden; background: linear-gradient(90deg, #0a1220 0%, #0a1220 50%, #0a1220 100%); outline: 1px solid rgba(255,255,255,.06); }
+.band .day { position:absolute; top:0; bottom:0; background: linear-gradient(90deg, rgba(255,209,102,0.18), rgba(83,183,255,0.18)); }
+.band .marker { position:absolute; top:-6px; bottom:-6px; width:2px; background:#fff; box-shadow: 0 0 0 6px rgba(255,255,255,.05), 0 0 0 12px rgba(255,255,255,.025); }
+
+.row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.row > * { flex: 1 1 auto; }
+
+.controls label { font-size: 13px; color:#cbd5e1; }
+.section { display:flex; flex-direction:column; gap:10px; }
+.field { display:flex; flex-direction:column; gap:6px; }
+.field input, .field select, .field button, .pill {
+  background: #0e1623; border:1px solid rgba(255,255,255,0.07); border-radius: 12px; color:#e5e7eb; padding:10px 12px; font-size:14px;
+}
+.field input::placeholder { color: #8aa0b5; }
+.field button { cursor:pointer; transition: .2s ease; }
+.field button:hover { border-color: var(--ring); box-shadow: 0 0 0 6px var(--ring); }
+.tiny { font-size: 12px; color: #98a7bb; }
+.muted { color: var(--muted); }
+
+.divider { height:1px; background: rgba(255,255,255,0.07); margin:10px 0; }
+
+.pill { display:inline-flex; align-items:center; gap:8px; }
+.pill input[type="radio"], .pill input[type="checkbox"] { accent-color: var(--accent); }
+
+.footer { text-align:center; margin: 24px 0 8px; color:#7e8da2; font-size: 12px; }
+a { color: var(--accent); text-decoration: none; }
+.hint { color:#93c5fd; }
+
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .clock { flex-direction: column; align-items:flex-start; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="grid">
+      <!-- Left: Clock -->
+      <div class="card" id="clockCard">
+        <div class="title">Sun Clock</div>
+        <div class="clock">
+          <div>
+            <div class="digits" id="sunTime">--:--:--</div>
+            <div class="sub" id="civilTime">—</div>
+            <div class="badges">
+              <div class="badge" id="locBadge">Loc: —</div>
+              <div class="badge" id="modeBadge">—</div>
+              <div class="badge" id="tzBadge">TZ: —</div>
+            </div>
+          </div>
+          <div style="flex:1; min-width:260px">
+            <div class="band" title="Day/Night band over 24h">
+              <div class="day" id="daySegment" style="left:0; width:0;"></div>
+              <div class="marker" id="nowMarker" style="left:0"></div>
+            </div>
+            <div class="row" style="justify-content:space-between; margin-top:6px">
+              <span class="tiny">00:00</span>
+              <span class="tiny">06:00</span>
+              <span class="tiny">12:00</span>
+              <span class="tiny">18:00</span>
+              <span class="tiny">24:00</span>
+            </div>
+            <div class="row" style="margin-top:10px; gap:14px">
+              <div class="field" style="flex:1">
+                <label class="tiny">Sunrise</label>
+                <div class="pill" id="srOut">—</div>
+              </div>
+              <div class="field" style="flex:1">
+                <label class="tiny">Sunset</label>
+                <div class="pill" id="ssOut">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- Right: Controls -->
+  <div class="card controls">
+    <div class="title">Location & Time Options</div>
+    <div class="section">
+      <div class="row">
+        <label class="pill"><input type="radio" name="locsrc" value="gps" checked> Use device location (GPS)</label>
+        <label class="pill"><input type="radio" name="locsrc" value="ip"> Fetch from internet (IP)</label>
+      </div>
+      <div class="row">
+        <label class="pill"><input type="radio" name="locsrc" value="city"> Choose city (offline list)</label>
+        <label class="pill"><input type="radio" name="locsrc" value="coords"> Enter coordinates</label>
+      </div>
+
+      <div id="cityPanel" style="display:none">
+        <div class="field">
+          <label>Search city</label>
+          <input id="citySearch" placeholder="Type to search… (e.g., Delhi)" />
+          <div class="tiny">Offline list (~100 cities). You can still use exact coordinates for any place.</div>
+          <select id="citySelect" size="6" style="width:100%; margin-top:8px"></select>
+        </div>
+      </div>
+
+      <div id="coordPanel" style="display:none">
+        <div class="row">
+          <div class="field">
+            <label>Latitude</label>
+            <input id="latInput" placeholder="e.g., 28.6139 or 28°36'50\"N" />
+          </div>
+          <div class="field">
+            <label>Longitude</label>
+            <input id="lonInput" placeholder="e.g., 77.2090 or 77°12'32\"E" />
+          </div>
+        </div>
+        <div class="tiny">Supports decimal and DMS formats. Range: −90…90, −180…180.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <label class="pill"><input type="checkbox" id="useDeviceTZ" checked> Use device time zone</label>
+        <div class="field" style="max-width:180px">
+          <label for="tzOffset">Manual UTC offset (hrs)</label>
+          <input id="tzOffset" type="number" step="0.25" value="0" disabled>
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="applyBtn">Apply location</button>
+        <button id="resetBtn" title="Reset to GPS + device TZ">Reset</button>
+      </div>
+      <div class="tiny muted">If you deny GPS permission, the manual panel will open automatically. Your last choice is saved locally.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Query Panel -->
+<div class="card" style="margin-top:20px">
+  <div class="title">Manual Query: compute sun-time for any date & time & location</div>
+  <div class="section">
+    <div class="row">
+      <div class="field">
+        <label>Date</label>
+        <input id="mqDate" type="date">
+      </div>
+      <div class="field">
+        <label>Time (local)</label>
+        <input id="mqTime" type="time" step="1">
+      </div>
+      <label class="pill"><input type="checkbox" id="mqUseNow"> Use current date & time</label>
+    </div>
+
+    <div class="row">
+      <label class="pill"><input type="radio" name="mqlocsrc" value="current" checked> Use current clock location</label>
+      <label class="pill"><input type="radio" name="mqlocsrc" value="coords"> Enter coordinates for query</label>
+    </div>
+    <div id="mqCoordPanel" style="display:none">
+      <div class="row">
+        <div class="field">
+          <label>Latitude</label>
+          <input id="mqLat" placeholder="e.g., 51.5074 or 51°30'26\"N" />
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input id="mqLon" placeholder="e.g., -0.1278 or 0°7'40\"W" />
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <button id="mqRun">Compute sun-time</button>
+      <div class="pill" id="mqOut">—</div>
+    </div>
+    <div class="tiny">Tip: The manual query uses the same polar handling as the live clock.</div>
+  </div>
+</div>
+
+<div class="footer">Built with <span class="hint">SunCalc</span>. No external APIs required except optional IP geolocation. ⟡</div>
+
+  </div><script>
+(function(){
+  // ===== Utilities =====
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const pad = n => String(n).padStart(2, '0');
+
+  function fmtTime(d, tzOffsetHours=null) {
+    if (!(d instanceof Date) || isNaN(d)) return '—';
+    let dd = new Date(d);
+    if (tzOffsetHours !== null) {
+      // Convert from UTC to desired offset: take UTC epoch and add offset
+      const utcMs = dd.getTime() + dd.getTimezoneOffset() * 60000;
+      dd = new Date(utcMs + tzOffsetHours * 3600000);
+    }
+    return `${pad(dd.getHours())}:${pad(dd.getMinutes())}:${pad(dd.getSeconds())}`;
+  }
+
+  function fmtHHMM(d) {
+    if (!(d instanceof Date) || isNaN(d)) return '—';
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function formatDMSStringToDecimal(s) {
+    if (!s) return null;
+    s = s.trim();
+    // Decimal quick path
+    if (/^[+-]?\d+(\.\d+)?$/.test(s)) return parseFloat(s);
+    // DMS like 28°36'50"N or 77 12 32 E
+    const m = s.match(/([+-]?\d+(?:\.\d+)?)\D+?(\d+(?:\.\d+)?)?\D*?(\d+(?:\.\d+)?)?\D*([NSEW])?/i);
+    if (!m) return null;
+    const deg = parseFloat(m[1]||'0');
+    const min = parseFloat(m[2]||'0');
+    const sec = parseFloat(m[3]||'0');
+    const hemi = (m[4]||'').toUpperCase();
+    let val = Math.abs(deg) + min/60 + sec/3600;
+    if (deg < 0) val = -val;
+    if (hemi === 'S' || hemi === 'W') val = -Math.abs(val);
+    if (hemi === 'N' || hemi === 'E') val = Math.abs(val);
+    return val;
+  }
+
+  function clampLatLon(lat, lon) {
+    if (!isFinite(lat) || !isFinite(lon)) return null;
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+    return {lat, lon};
+  }
+
+  function localTZName() {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'; } catch(e) { return 'Local'; }
+  }
+
+  function deviceOffsetHours() {
+    return -new Date().getTimezoneOffset()/60;
+  }
+
+  // Percent through between two dates
+  function frac(t, a, b) {
+    const A = a.getTime(), B = b.getTime(), T = t.getTime();
+    if (B === A) return 0.5;
+    return (T - A) / (B - A);
+  }
+
+  function mod(n, m) { return ((n % m) + m) % m; }
+
+  // Persist
+  const store = {
+    get() {
+      try { return JSON.parse(localStorage.getItem('sunclock_prefs')||'{}'); } catch(e){ return {}; }
+    },
+    set(obj){ localStorage.setItem('sunclock_prefs', JSON.stringify(obj)); }
+  };
+
+  // ===== City list (small offline sample; extendable) =====
+  const cities = [
+    {name:'Delhi, IN', lat:28.6139, lon:77.2090},
+    {name:'Mumbai, IN', lat:19.0760, lon:72.8777},
+    {name:'Kolkata, IN', lat:22.5726, lon:88.3639},
+    {name:'Chennai, IN', lat:13.0827, lon:80.2707},
+    {name:'Bengaluru, IN', lat:12.9716, lon:77.5946},
+    {name:'Hyderabad, IN', lat:17.3850, lon:78.4867},
+    {name:'Karachi, PK', lat:24.8607, lon:67.0011},
+    {name:'Dhaka, BD', lat:23.8103, lon:90.4125},
+    {name:'Kathmandu, NP', lat:27.7172, lon:85.3240},
+    {name:'Colombo, LK', lat:6.9271, lon:79.8612},
+    {name:'London, UK', lat:51.5074, lon:-0.1278},
+    {name:'New York, US', lat:40.7128, lon:-74.0060},
+    {name:'Los Angeles, US', lat:34.0522, lon:-118.2437},
+    {name:'Paris, FR', lat:48.8566, lon:2.3522},
+    {name:'Berlin, DE', lat:52.5200, lon:13.4050},
+    {name:'Tokyo, JP', lat:35.6762, lon:139.6503},
+    {name:'Sydney, AU', lat:-33.8688, lon:151.2093},
+    {name:'Cairo, EG', lat:30.0444, lon:31.2357},
+    {name:'Johannesburg, ZA', lat:-26.2041, lon:28.0473},
+    {name:'São Paulo, BR', lat:-23.5505, lon:-46.6333},
+    {name:'Mexico City, MX', lat:19.4326, lon:-99.1332},
+    {name:'Moscow, RU', lat:55.7558, lon:37.6173},
+    {name:'Toronto, CA', lat:43.6532, lon:-79.3832},
+    {name:'Singapore, SG', lat:1.3521, lon:103.8198},
+    {name:'Dubai, AE', lat:25.2048, lon:55.2708}
+  ];
+
+  // Populate city select
+  const citySelect = $('#citySelect');
+  cities.forEach((c,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = c.name + `  (lat ${c.lat.toFixed(4)}, lon ${c.lon.toFixed(4)})`;
+    citySelect.appendChild(opt);
+  });
+  $('#citySearch').addEventListener('input', e=>{
+    const q = e.target.value.toLowerCase();
+    citySelect.innerHTML = '';
+    cities.filter(c=>c.name.toLowerCase().includes(q)).forEach((c,i)=>{
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = c.name + `  (lat ${c.lat.toFixed(4)}, lon ${c.lon.toFixed(4)})`;
+      citySelect.appendChild(opt);
+    });
+  });
+
+  // ===== State =====
+  let state = {
+    locsrc: 'gps', // 'gps' | 'ip' | 'city' | 'coords'
+    lat: null, lon: null,
+    useDeviceTZ: true,
+    manualOffset: 0,
+  };
+
+  // Load prefs
+  const saved = store.get();
+  Object.assign(state, saved);
+  if (saved.locsrc) {
+    $$('input[name="locsrc"]').forEach(r=>r.checked = (r.value===saved.locsrc));
+  }
+  $('#useDeviceTZ').checked = state.useDeviceTZ ?? true;
+  $('#tzOffset').value = state.manualOffset ?? 0;
+  $('#tzOffset').disabled = !!state.useDeviceTZ;
+
+  // Show panels based on source
+  function updatePanels() {
+    const src = ($$('input[name="locsrc"]').find(r=>r.checked)||{}).value;
+    $('#cityPanel').style.display = src==='city' ? '' : 'none';
+    $('#coordPanel').style.display = src==='coords' ? '' : 'none';
+  }
+  updatePanels();
+  $$('input[name="locsrc"]').forEach(r=> r.addEventListener('change', updatePanels));
+
+  $('#useDeviceTZ').addEventListener('change', (e)=>{
+    const on = e.target.checked;
+    $('#tzOffset').disabled = on;
+    state.useDeviceTZ = on;
+    store.set(state);
+  });
+
+  // ===== Location acquisition =====
+  async function getGPS() {
+    return new Promise((resolve,reject)=>{
+      if (!('geolocation' in navigator)) return reject(new Error('Geolocation not supported'));
+      navigator.geolocation.getCurrentPosition(
+        pos=>resolve({lat: pos.coords.latitude, lon: pos.coords.longitude}),
+        err=>reject(err),
+        {enableHighAccuracy:true, timeout: 10000, maximumAge: 60000}
+      );
+    });
+  }
+  async function getIP() {
+    try {
+      const r = await fetch('https://ipapi.co/json/');
+      if (!r.ok) throw new Error('IP API failed');
+      const j = await r.json();
+      if (j && j.latitude && j.longitude) return {lat: j.latitude, lon: j.longitude, label: `${j.city||''} ${j.region||''} ${j.country_code||''}`.trim()};
+      throw new Error('Bad IP payload');
+    } catch(e) { throw e; }
+  }
+
+  function readCoordsInputs(prefix=''){
+    const latS = $(prefix+'#latInput') ? $('#latInput').value : $('#mqLat').value;
+    const lonS = $(prefix+'#lonInput') ? $('#lonInput').value : $('#mqLon').value;
+    const lat = formatDMSStringToDecimal(latS);
+    const lon = formatDMSStringToDecimal(lonS);
+    const cl = clampLatLon(lat, lon);
+    if (!cl) throw new Error('Invalid coordinates');
+    return cl;
+  }
+
+  async function acquireLocation(src) {
+    if (src === 'gps') return await getGPS();
+    if (src === 'ip') return await getIP();
+    if (src === 'city') {
+      const idx = parseInt(citySelect.value||'0',10); return {lat: cities[idx].lat, lon: cities[idx].lon, label: cities[idx].name};
+    }
+    if (src === 'coords') return readCoordsInputs('#');
+    throw new Error('Unknown source');
+  }
+
+  // ===== Sun-time mapping =====
+  // Polar handling: P1 — use solar noon/midnight anchors
+  function computeSunTimes(date, lat, lon) {
+    // Get times for date at given location
+    const times = SunCalc.getTimes(date, lat, lon);
+    // Determine if we have valid rise/set
+    const sr = times.sunrise, ss = times.sunset;
+    let polar = null;
+    if (!(sr instanceof Date) || isNaN(sr) || !(ss instanceof Date) || isNaN(ss) || sr.getTime() === ss.getTime()) {
+      // polar: no conventional rise/set
+      polar = true;
+    }
+    return {times, polar};
+  }
+
+  function nextDay(date) { const d = new Date(date); d.setDate(d.getDate()+1); return d; }
+  function prevDay(date) { const d = new Date(date); d.setDate(d.getDate()-1); return d; }
+
+  function mapToSunClock(now, lat, lon) {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const {times: t0, polar} = computeSunTimes(today, lat, lon);
+
+    // Convenience
+    let sr = t0.sunrise, ss = t0.sunset, noon = t0.solarNoon, nadir = t0.nadir;
+
+    if (polar) {
+      // P1: If no rise/set, infer a pseudo mapping:
+      //   day segment centered on solarNoon, night on solarMidnight (nadir).
+      // We'll approximate day length as 12h (to satisfy mapping), but we still need markers for band UI.
+      // For display, create synthetic sunrise/sunset 6h around solar noon.
+      if (!(noon instanceof Date) || isNaN(noon)) noon = new Date(today.getTime()+12*3600000); // fallback 12:00
+      if (!(nadir instanceof Date) || isNaN(nadir)) nadir = new Date(today.getTime()); // fallback 00:00
+      sr = new Date(noon.getTime() - 6*3600000);
+      ss = new Date(noon.getTime() + 6*3600000);
+      // Determine day/night by comparing to nadir/noon
+      const isDay = Math.abs(now - noon) < Math.abs(now - nadir);
+      const start = isDay ? sr : ss; // segment start
+      const end   = isDay ? ss : new Date(sr.getTime() + 12*3600000); // 12h segment
+      const fraction = frac(now, start, end);
+      const base = isDay ? 6 : 18;
+      const sunHours = base + 12 * fraction;
+      return { sunHours, sr, ss, mode: isDay ? 'Day (Polar)' : 'Night (Polar)', polar: true };
+    }
+
+    // For normal days, we also need next sunrise for the night mapping.
+    const t1 = SunCalc.getTimes(nextDay(today), lat, lon);
+    const srNext = t1.sunrise;
+
+    let mode = '';
+    if (now >= sr && now < ss) {
+      // Day segment: map SR→SS to 06:00→18:00
+      const fraction = frac(now, sr, ss);
+      const sunHours = 6 + 12 * fraction;
+      mode = 'Day';
+      return { sunHours, sr, ss, mode, polar: false };
+    } else {
+      // Night segment: SS→next SR to 18:00→06:00 (wrap)
+      // NOTE: night spans two dates
+      let start = ss, end = srNext;
+      // If now before today's sunrise, we are in previous night (use yesterday's sunset)
+      if (now < sr) {
+        const tPrev = SunCalc.getTimes(prevDay(today), lat, lon);
+        start = tPrev.sunset; end = sr;
+      }
+      const fraction = frac(now, start, end);
+      const sunHours = 18 + 12 * fraction; // this runs 18→30; wrap at 24
+      mode = 'Night';
+      return { sunHours, sr, ss, mode, polar: false };
+    }
+  }
+
+  function hoursToHHMMSS(h) {
+    const wrap = mod(h, 24);
+    const hh = Math.floor(wrap);
+    const mm = Math.floor((wrap - hh) * 60);
+    const ss = Math.floor(((wrap - hh) * 60 - mm) * 60);
+    return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+  }
+
+  function bandPositions(sr, ss) {
+    // returns left% and width% for day segment in 24h band
+    const start = sr.getHours() + sr.getMinutes()/60 + sr.getSeconds()/3600;
+    const end = ss.getHours() + ss.getMinutes()/60 + ss.getSeconds()/3600;
+    let left = start/24*100;
+    let width = (end-start)/24*100;
+    if (width < 0) width = 0; // should not happen on normal days
+    return {left, width};
+  }
+
+  // ===== Rendering loop =====
+  let timer = null;
+  let curLoc = {lat: state.lat, lon: state.lon, label: state.label || ''};
+
+  function applyBadges(mode, locLabel) {
+    $('#modeBadge').textContent = mode;
+    $('#modeBadge').className = 'badge ' + (mode.includes('Day') ? 'ok' : 'warn');
+    $('#locBadge').textContent = 'Loc: ' + (locLabel || `${curLoc.lat?.toFixed(4)||'—'}, ${curLoc.lon?.toFixed(4)||'—'}`);
+    const tz = state.useDeviceTZ ? localTZName() : `UTC${state.manualOffset>=0?'+':''}${state.manualOffset}`;
+    $('#tzBadge').textContent = 'TZ: ' + tz;
+  }
+
+  function updateBand(sr, ss, now) {
+    const markerLeft = (now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600)/24*100;
+    $('#nowMarker').style.left = markerLeft + '%';
+    const pos = bandPositions(sr, ss);
+    const day = $('#daySegment');
+    day.style.left = pos.left + '%';
+    day.style.width = pos.width + '%';
+    $('#srOut').textContent = fmtHHMM(sr);
+    $('#ssOut').textContent = fmtHHMM(ss);
+  }
+
+  function tick() {
+    if (curLoc.lat==null || curLoc.lon==null) return;
+    const nowLocal = new Date();
+
+    // For manual TZ display, convert the *display* of civil time, not the sun math (sun math uses real local date at location implicitly)
+    const civilDisplay = state.useDeviceTZ ? nowLocal : new Date(nowLocal.getTime() - (deviceOffsetHours() - state.manualOffset) * 3600000);
+
+    const map = mapToSunClock(nowLocal, curLoc.lat, curLoc.lon);
+    $('#sunTime').textContent = hoursToHHMMSS(map.sunHours);
+    $('#civilTime').textContent = civilDisplay.toLocaleString(undefined, {weekday:'short', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    applyBadges(map.mode + (map.polar?'':'') , curLoc.label);
+    updateBand(map.sr, map.ss, nowLocal);
+  }
+
+  function startLoop(){ if (timer) clearInterval(timer); timer = setInterval(tick, 1000); tick(); }
+
+  async function initLocationFlow() {
+    // Choose current selection
+    const src = ($$('input[name="locsrc"]').find(r=>r.checked)||{}).value || 'gps';
+    try {
+      const loc = await acquireLocation(src);
+      curLoc = {...loc};
+      state.locsrc = src; state.lat = curLoc.lat; state.lon = curLoc.lon; state.label = curLoc.label || '';
+      store.set(state);
+      startLoop();
+    } catch(e) {
+      // If GPS denied and src was gps -> auto open manual (F1)
+      if (src === 'gps') {
+        // Switch UI to coords panel for manual entry
+        $$('input[name="locsrc"]').forEach(r=>{ if (r.value==='coords') r.checked = true; });
+        updatePanels();
+        alert('Location permission denied or unavailable. Please enter a location (city or coordinates), or choose "Fetch from internet (IP)".');
+      } else {
+        alert('Failed to get location: ' + e.message);
+      }
+    }
+  }
+
+  // Buttons
+  $('#applyBtn').addEventListener('click', initLocationFlow);
+  $('#resetBtn').addEventListener('click', ()=>{
+    state = { locsrc: 'gps', lat: null, lon: null, useDeviceTZ: true, manualOffset: 0 };
+    store.set(state);
+    $$('input[name="locsrc"]').forEach(r=> r.checked = (r.value==='gps'));
+    $('#useDeviceTZ').checked = true; $('#tzOffset').value = 0; $('#tzOffset').disabled = true;
+    updatePanels();
+    initLocationFlow();
+  });
+
+  $('#tzOffset').addEventListener('change', (e)=>{ state.manualOffset = parseFloat(e.target.value||'0')||0; store.set(state); tick(); });
+
+  // Manual Query wiring
+  $('#mqUseNow').addEventListener('change', e=>{
+    const on = e.target.checked;
+    $('#mqDate').disabled = on; $('#mqTime').disabled = on;
+  });
+  $$('input[name="mqlocsrc"]').forEach(r=> r.addEventListener('change', ()=>{
+    const v = ($$('input[name="mqlocsrc"]').find(x=>x.checked)||{}).value;
+    $('#mqCoordPanel').style.display = v==='coords' ? '' : 'none';
+  }));
+
+  function combineDateTime(dateStr, timeStr) {
+    if (!dateStr || !timeStr) return null;
+    const [y,m,d] = dateStr.split('-').map(Number);
+    const [hh,mm,ss] = timeStr.split(':').map(x=>Number(x||0));
+    return new Date(y, m-1, d, hh, mm, ss||0);
+  }
+
+  function computeSunTimeAt(dt, lat, lon) {
+    const map = mapToSunClock(dt, lat, lon);
+    return { hhmmss: hoursToHHMMSS(map.sunHours), sr: map.sr, ss: map.ss, mode: map.mode, polar: map.polar };
+  }
+
+  $('#mqRun').addEventListener('click', ()=>{
+    let dt = new Date();
+    if (!$('#mqUseNow').checked) {
+      const d = $('#mqDate').value, t = $('#mqTime').value;
+      const c = combineDateTime(d,t);
+      if (!c) { alert('Please provide date & time or check "Use current"'); return; }
+      dt = c;
+    }
+
+    let lat = curLoc.lat, lon = curLoc.lon;
+    const src = ($$('input[name="mqlocsrc"]').find(r=>r.checked)||{}).value;
+    if (src === 'coords') {
+      try { const cc = readCoordsInputs(); lat = cc.lat; lon = cc.lon; } catch(e) { return alert('Manual query coordinates invalid'); }
+    } else if (lat==null || lon==null) {
+      return alert('Current clock location not set yet. Click "Apply location" first.');
+    }
+
+    const out = computeSunTimeAt(dt, lat, lon);
+    $('#mqOut').textContent = `${out.hhmmss}  —  SR ${fmtHHMM(out.sr)}  SS ${fmtHHMM(out.ss)}  (${out.mode})`;
+  });
+
+  // Initialize panels and start
+  initLocationFlow();
+  startLoop();
+})();
+</script></body>
+</html>
