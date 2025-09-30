@@ -206,48 +206,41 @@
         0 0 30px rgba(88, 166, 255, 0.3);
     }
 
-/* Shared base pill */
-.band {
-  position: relative;
-  height: 24px;
-  border-radius: 999px;
-  overflow: hidden;
-  outline: 1px solid var(--border);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
-}
+    /* Shared base pill */
+    .band {
+      position: relative;
+      height: 24px;
+      border-radius: 999px;
+      overflow: hidden;
+      outline: 1px solid var(--border);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
+    }
 
-/* Dark theme pill (pure black sides) */
-.theme-dark .band {
-  background: #000;
-}
+    .theme-dark .band { background: #000; }
+    .theme-light .band { background: #ccc; }
 
-/* Light theme pill (gray sides) */
-.theme-light .band {
-  background: #ccc; /* adjust shade if you want lighter/darker */
-}
+    .band .day {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, #ffd166 0%, #58a6ff 50%, #f77f00 100%);
+      box-shadow: 0 0 12px rgba(88,166,255,0.45);
+      opacity: 0.95;
+      z-index: 1;
+    }
 
-.band .day {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, #ffd166 0%, #58a6ff 50%, #f77f00 100%);
-  box-shadow: 0 0 12px rgba(88,166,255,0.45);
-  opacity: 0.95;
-  z-index: 1;
-}
-
-.band .marker {
-  position: absolute;
-  top: -4px;
-  bottom: -4px;
-  width: 6px;
-  margin-left: -3px;
-  background: #fff;
-  border-radius: 3px;
-  box-shadow: 0 0 10px 3px #fff, 0 0 20px 6px rgba(255,255,255,0.5);
-  animation: pulse 2s infinite ease-in-out;
-  z-index: 2;
-}
+    .band .marker {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 6px;
+      margin-left: -3px;
+      background: #fff;
+      border-radius: 3px;
+      box-shadow: 0 0 10px 3px #fff, 0 0 20px 6px rgba(255,255,255,0.5);
+      animation: pulse 2s infinite ease-in-out;
+      z-index: 2;
+    }
 
     .field input,
     .field select,
@@ -290,10 +283,8 @@
 
     /* -------------------------------------------------- */
     /*                 LIGHT THEME OVERRIDES              */
-    /*  (Auto-applies in daytime via SunCalc mapping)     */
     /* -------------------------------------------------- */
     body.theme-light {
-      /* Daylight sky with gentle moving glow */
       --bg: #f5f7fb;
       --card: rgba(255,255,255,0.65);
       --border: rgba(0,0,0,0.08);
@@ -318,7 +309,6 @@
       100% { background-position: 0% 0%; }
     }
 
-    /* Cards: airy glass on light */
     body.theme-light .card {
       background: rgba(255, 255, 255, 0.72);
       border: 1px solid rgba(0, 0, 0, 0.06);
@@ -333,13 +323,8 @@
         0 14px 40px rgba(18, 40, 80, 0.12);
     }
 
-    /* Headings: crisper, no neon glow */
-    body.theme-light .title {
-      color: var(--text-secondary);
-      text-shadow: none;
-    }
+    body.theme-light .title { color: var(--text-secondary); text-shadow: none; }
 
-    /* DIGITS: “shine black” in light theme */
     body.theme-light .digits {
       background: none;
       -webkit-background-clip: initial;
@@ -350,15 +335,11 @@
         0 6px 18px rgba(0, 0, 0, 0.08);
     }
 
-    /* Keep the linear pill EXACT SAME: no .theme-light overrides for .band/.day/.marker */
-
-    /* “Time display” chips: lighter */
     body.theme-light .time-display {
       background: rgba(255,255,255,0.55);
       border-color: rgba(0,0,0,0.06);
     }
 
-    /* Inputs/Buttons on light */
     body.theme-light .field input,
     body.theme-light .field select,
     body.theme-light .btn {
@@ -395,9 +376,7 @@
     body.theme-light .badge.ok  { color: #179d58; border-color: rgba(23,157,88,0.25); }
     body.theme-light .badge.warn{ color: #b36b00; border-color: rgba(179,107,0,0.25); }
 
-    body.theme-light .footer {
-      color: rgba(17, 27, 45, 0.55);
-    }
+    body.theme-light .footer { color: rgba(17, 27, 45, 0.55); }
     body.theme-light a { color: var(--accent-primary); }
   </style>
 </head>
@@ -419,7 +398,7 @@
           </div>
 
           <div class="band-container">
-            <div class="band" title="Day/Night band over 24h (device clock)">
+            <div class="band" title="Day/Night band over 24h (device or manual clock)">
               <div class="day" id="daySegment" style="left:0; width:0;"></div>
               <div class="marker" id="nowMarker" style="left:0"></div>
             </div>
@@ -471,21 +450,34 @@
                 <input id="lonInput" placeholder="e.g., 77.2090 or 77°12'32&quot;E" />
               </div>
             </div>
+
+            <div class="divider"></div>
+
+            <!-- Time source when using Coordinates -->
+            <div class="row">
+              <label class="pill"><input type="radio" name="timesrc" value="device" checked><label>Use device clock</label></label>
+              <label class="pill"><input type="radio" name="timesrc" value="manual"><label>Enter manual date &amp; time</label></label>
+            </div>
+            <div id="manualTimePanel" style="display:none">
+              <div class="row">
+                <div class="field">
+                  <label for="manualDate">Manual Date</label>
+                  <input id="manualDate" type="date">
+                </div>
+                <div class="field">
+                  <label for="manualTime">Manual Time</label>
+                  <input id="manualTime" type="time" step="1">
+                </div>
+              </div>
+              <div class="tiny muted">In manual mode, the clock, band, and theme run on your entered time for the entered coordinates and tick forward from that point.</div>
+            </div>
           </div>
 
           <div class="divider"></div>
 
-          <div class="row">
-            <label class="pill"><input type="checkbox" id="useDeviceTZ" checked><label>Use device time zone</label></label>
-            <div class="field" style="flex:0 1 140px;">
-              <label for="tzOffset">UTC Offset</label>
-              <input id="tzOffset" type="number" step="0.25" value="0" disabled>
-            </div>
-          </div>
-
           <div class="row" style="margin-top:8px;">
             <button id="applyBtn" class="btn primary">Apply Location</button>
-            <button id="resetBtn" class="btn" title="Reset to GPS + device TZ">Reset</button>
+            <button id="resetBtn" class="btn" title="Reset to GPS">Reset</button>
           </div>
           <div class="tiny muted">
             IP option requires internet. Your last choice is saved locally. If GPS fails, manual coordinates will appear.
@@ -583,13 +575,9 @@
   const $$ = s => Array.from(document.querySelectorAll(s));
   const pad = n => String(n).padStart(2, '0');
 
-  function fmtTime(d, tzOffsetHours=null) {
+  function fmtTime(d) {
     if (!(d instanceof Date) || isNaN(d)) return '—';
-    let dd = new Date(d);
-    if (tzOffsetHours !== null) {
-      const utcMs = dd.getTime() + dd.getTimezoneOffset() * 60000;
-      dd = new Date(utcMs + tzOffsetHours * 3600000);
-    }
+    const dd = new Date(d);
     return `${pad(dd.getHours())}:${pad(dd.getMinutes())}:${pad(dd.getSeconds())}`;
   }
   function fmtFullTime(d) {
@@ -620,6 +608,56 @@
     return {lat, lon};
   }
 
+  // NEW: approximate local UTC offset from longitude (15° ≈ 1h), clamped
+  function approxOffsetFromLongitude(lon){
+    if (!isFinite(lon)) return 0;
+    const h = Math.round(lon / 15);
+    return Math.max(-12, Math.min(14, h));
+  }
+
+  // NEW: build a UTC Date from local (coords) parts using an offset
+  function buildUTCFromLocalParts(dateStr, timeStr, offsetHours){
+    if (!dateStr || !timeStr) return null;
+    const [Y, M, D] = dateStr.split('-').map(n=>parseInt(n,10));
+    const [h, m, s=0] = timeStr.split(':').map(n=>parseInt(n,10));
+    if (!Y || !M || !D || isNaN(h) || isNaN(m) || isNaN(s)) return null;
+    const utcMs = Date.UTC(Y, M-1, D, h - offsetHours, m, s); // UTC = local - offset
+    return new Date(utcMs);
+  }
+  
+  // ----- Manual-mode formatting helpers -----
+function getActiveOffsetHours(){
+  if (state.locsrc === 'coords' && state.timeMode === 'manual') {
+    return state.manualOffsetGuess ?? approxOffsetFromLongitude(curLoc.lon);
+  }
+  // device otherwise
+  return deviceOffsetHours();
+}
+
+// Format a Date (UTC instant) as HH:MM in a target offset (no device TZ involved)
+function fmtHHMM_withOffset(d, offsetHours){
+  if (!(d instanceof Date) || isNaN(d)) return '—';
+  const shifted = new Date(d.getTime() + offsetHours*3600e3); // shift into local civil time
+  // render in UTC so no device TZ is applied
+  return `${pad(shifted.getUTCHours())}:${pad(shifted.getUTCMinutes())}`;
+}
+
+// Full date/time string in a target offset
+function fmtFull_withOffset(d, offsetHours){
+  if (!(d instanceof Date) || isNaN(d)) return '—';
+  const shifted = new Date(d.getTime() + offsetHours*3600e3);
+  return shifted.toLocaleString(undefined, {
+    weekday:'short', year:'numeric', month:'short', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone:'UTC'
+  });
+}
+
+// Get "hour of day" [0..24) for a UTC instant in a target offset
+function hourOfDay_withOffset(d, offsetHours){
+  const shifted = new Date(d.getTime() + offsetHours*3600e3);
+  return shifted.getUTCHours() + shifted.getUTCMinutes()/60 + shifted.getUTCSeconds()/3600;
+}
+
   // ---------- Persist ----------
   const store = {
     get(){ try { return JSON.parse(localStorage.getItem('sunclock_prefs')||'{}'); } catch(e){ return {}; } },
@@ -627,22 +665,62 @@
   };
 
   // ---------- State ----------
-  let state = { locsrc:'gps', lat:null, lon:null, useDeviceTZ:true, manualOffset:0 };
+  let state = {
+    locsrc:'gps',
+    lat:null, lon:null, label:'',
+    timeMode:'device',          // used only when locsrc === 'coords'
+    manualDate:null,            // "YYYY-MM-DD"
+    manualTime:null,            // "HH:MM(:SS)"
+    manualOffsetGuess:null
+  };
   Object.assign(state, store.get());
+
+  // Manual virtual clock counter (ms). If null => use device time.
+  let virtualNowMs = null;
 
   // ---------- UI init ----------
   if (state.locsrc) $$('input[name="locsrc"]').forEach(r=> r.checked = (r.value===state.locsrc));
-  $('#useDeviceTZ').checked = state.useDeviceTZ ?? true;
-  $('#tzOffset').value = state.manualOffset ?? 0;
-  $('#tzOffset').disabled = !!state.useDeviceTZ;
 
-  function updatePanels(){
+  function showCoordPanels(){
     const src = ($$('input[name="locsrc"]').find(r=>r.checked)||{}).value;
-    $('#coordPanel').style.display = src==='coords' ? '' : 'none';
+    const isCoords = src === 'coords';
+    $('#coordPanel').style.display = isCoords ? '' : 'none';
+    if (isCoords){
+      $$('input[name="timesrc"]').forEach(r=> r.checked = (r.value === (state.timeMode || 'device')));
+      $('#manualTimePanel').style.display = (state.timeMode === 'manual') ? '' : 'none';
+      if (state.manualDate) $('#manualDate').value = state.manualDate;
+      if (state.manualTime) $('#manualTime').value = state.manualTime;
+    }
   }
-  updatePanels();
-  $$('input[name="locsrc"]').forEach(r=> r.addEventListener('change', updatePanels));
-  $('#useDeviceTZ').addEventListener('change', e=>{ const on=e.target.checked; $('#tzOffset').disabled=on; state.useDeviceTZ=on; store.set(state); });
+  showCoordPanels();
+  $$('input[name="locsrc"]').forEach(r=> r.addEventListener('change', showCoordPanels));
+
+  // Toggle manual time fields + start/stop virtual clock immediately
+  $$('input[name="timesrc"]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      const v = ($$('input[name="timesrc"]').find(x=>x.checked)||{}).value || 'device';
+      $('#manualTimePanel').style.display = v === 'manual' ? '' : 'none';
+
+      if (state.locsrc === 'coords') {
+        if (v === 'manual') {
+          const d = $('#manualDate').value;
+          const t = $('#manualTime').value;
+          const off = approxOffsetFromLongitude((state.lon ?? 0));
+          const dtUTC = buildUTCFromLocalParts(d, t, off);
+          if (dtUTC && !isNaN(dtUTC)) {
+            state.timeMode = 'manual';
+            state.manualDate = d; state.manualTime = t; state.manualOffsetGuess = off;
+            virtualNowMs = dtUTC.getTime();
+          }
+        } else {
+          state.timeMode = 'device';
+          state.manualDate = null; state.manualTime = null; state.manualOffsetGuess = null;
+          virtualNowMs = null;
+        }
+        store.set(state);
+      }
+    });
+  });
 
   // ---------- Location acquisition ----------
   async function getGPS(){
@@ -678,7 +756,6 @@
 
   // ---------- Sun-time mapping (timezone-robust) ----------
   function mapToSunClock(now, lat, lon){
-    // Build UTC midnight anchors to avoid device-TZ day mismatch
     const u = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     const day0 = new Date(u);
     const dayM1 = new Date(u - 24*3600e3);
@@ -689,13 +766,11 @@
     const tP1 = SunCalc.getTimes(dayP1, lat, lon);
     const valid = d => d instanceof Date && !isNaN(d);
 
-    // Gather candidate segments that might bracket "now"
     const segments = [];
     if (valid(tM1.sunrise) && valid(tM1.sunset)) segments.push({type:'day', start:tM1.sunrise, end:tM1.sunset, dayTimes:tM1});
     if (valid(t0.sunrise)  && valid(t0.sunset))  segments.push({type:'day', start:t0.sunrise,  end:t0.sunset,  dayTimes:t0});
     if (valid(tP1.sunrise) && valid(tP1.sunset)) segments.push({type:'day', start:tP1.sunrise, end:tP1.sunset, dayTimes:tP1});
 
-    // Nights: yesterday SS -> today SR, today SS -> tomorrow SR
     const nightPairs = [
       {ss:tM1.sunset, sr:t0.sunrise},
       {ss:t0.sunset,  sr:tP1.sunrise},
@@ -721,7 +796,6 @@
       return { sunHours, sr, ss, noon, mode: isDay ? 'Day (Polar)' : 'Night (Polar)', polar: true };
     }
 
-    // Normal mapping
     if (chosen.type === 'day'){
       const f = (nowMs - chosen.start.getTime()) / (chosen.end.getTime() - chosen.start.getTime());
       const sunHours = 6 + 12 * f;
@@ -729,7 +803,7 @@
       return { sunHours, sr, ss, noon, mode:'Day', polar:false };
     } else {
       const f = (nowMs - chosen.start.getTime()) / (chosen.end.getTime() - chosen.start.getTime());
-      const sunHours = 18 + 12 * f; // will naturally wrap >24 in display
+      const sunHours = 18 + 12 * f;
       const sr = chosen.end, ss = chosen.start;
       const noon = t0.solarNoon;
       return { sunHours, sr, ss, noon, mode:'Night', polar:false };
@@ -772,16 +846,44 @@
     const ss = Math.floor((((wrap - hh)*60) - mm)*60);
     return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
   }
-  function bandPositions(sr, ss){
-    const start = sr.getHours() + sr.getMinutes()/60 + sr.getSeconds()/3600;
-    const end = ss.getHours() + ss.getMinutes()/60 + ss.getSeconds()/3600;
-    let left = start/24*100;
-    let width = (end-start)/24*100;
-    if (width < 0) width = 0;
-    return {left, width};
+
+  // Visual day band based on the sunrise day length
+  function updateBand(sr, ss, noon, now, curLat, curLon){
+  const off = getActiveOffsetHours();
+
+  // position the "now" marker using manual/device offset as appropriate
+  const nowH = hourOfDay_withOffset(now, off);
+  const markerLeft = (nowH / 24) * 100;
+  document.getElementById('nowMarker').style.left = markerLeft + '%';
+
+  try {
+    const srUTC = Date.UTC(sr.getUTCFullYear(), sr.getUTCMonth(), sr.getUTCDate());
+    const tForSunriseDay = SunCalc.getTimes(new Date(srUTC), curLat, curLon);
+    const srDay = tForSunriseDay.sunrise;
+    const ssDay = tForSunriseDay.sunset;
+
+    let dayLenMs = ssDay.getTime() - srDay.getTime();
+    if (!(dayLenMs > 0)) dayLenMs = 12 * 3600e3;
+
+    const dayLenPct = Math.max(0, Math.min(100, (dayLenMs / (24*3600e3)) * 100));
+    const leftPct   = 50 - (dayLenPct / 2);
+
+    const dayEl = document.getElementById('daySegment');
+    dayEl.style.left  = leftPct + '%';
+    dayEl.style.width = dayLenPct + '%';
+  } catch(e) {
+    const dayEl = document.getElementById('daySegment');
+    dayEl.style.left = '25%';
+    dayEl.style.width = '50%';
   }
 
-  // ---------- THEME HANDLING (auto by sun) ----------
+  // Format Sunrise/Noon/Sunset in the active (manual) local time instead of device TZ
+  document.getElementById('srOut').innerHTML   = `<span class="value">${fmtHHMM_withOffset(sr,   off)}</span>`;
+  document.getElementById('ssOut').innerHTML   = `<span class="value">${fmtHHMM_withOffset(ss,   off)}</span>`;
+  document.getElementById('noonOut').innerHTML = `<span class="value">${fmtHHMM_withOffset(noon, off)}</span>`;
+}
+
+  // ---------- THEME ----------
   let currentTheme = null;
   function applyTheme(theme){
     if (theme === currentTheme) return;
@@ -799,62 +901,74 @@
     $('#modeBadge').textContent = mode;
     $('#modeBadge').className = 'badge ' + (mode.includes('Day') ? 'ok' : 'warn');
     $('#locBadge').textContent = 'Loc: ' + (locLabel || `${curLoc.lat?.toFixed(4)||'—'}, ${curLoc.lon?.toFixed(4)||'—'}`);
-    const tz = state.useDeviceTZ ? Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'
-                                 : `UTC${state.manualOffset>=0?'+':''}${state.manualOffset}`;
+
+    let tz;
+    if (state.locsrc === 'coords' && state.timeMode === 'manual'){
+      const off = state.manualOffsetGuess ?? approxOffsetFromLongitude(curLoc.lon);
+      const sign = off >= 0 ? '+' : '';
+      tz = `Manual (GMT${sign}${off})`;
+    } else {
+      tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local';
+    }
     $('#tzBadge').textContent = 'TZ: ' + tz;
   }
-  function updateBand(sr, ss, noon, now){
-  // Move the white "now" marker across 24h
-  const nowH = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600;
-  const markerLeft = (nowH / 24) * 100;
-  document.getElementById('nowMarker').style.left = markerLeft + '%';
 
-  // --- Day length for the sunrise's day (robust for "night" case) ---
-  // sr = next sunrise (night) or today's sunrise (day).
-  // Get that day's official sunrise/sunset to compute true length.
-  try {
-    const srUTC = Date.UTC(sr.getUTCFullYear(), sr.getUTCMonth(), sr.getUTCDate());
-    const tForSunriseDay = SunCalc.getTimes(new Date(srUTC), curLoc.lat, curLoc.lon);
-    const srDay = tForSunriseDay.sunrise;
-    const ssDay = tForSunriseDay.sunset;
+  function nowSource(){
+  const src = ($$('input[name="locsrc"]').find(r=>r.checked)||{}).value || state.locsrc || 'gps';
+  const timeSrc = ($$('input[name="timesrc"]').find(r=>r.checked)||{}).value || state.timeMode || 'device';
 
-    let dayLenMs = ssDay.getTime() - srDay.getTime();           // always positive for that day
-    if (!(dayLenMs > 0)) dayLenMs = 12 * 3600e3;                // polar fallback
-
-    const dayLenPct = Math.max(0, Math.min(100, (dayLenMs / (24*3600e3)) * 100));
-    const leftPct   = 50 - (dayLenPct / 2);                     // center the day segment
-
-    const dayEl = document.getElementById('daySegment');
-    dayEl.style.left  = leftPct + '%';
-    dayEl.style.width = dayLenPct + '%';
-  } catch(e) {
-    // Safe fallback (should almost never hit)
-    const dayEl = document.getElementById('daySegment');
-    dayEl.style.left = '25%';
-    dayEl.style.width = '50%';
+  if (src === 'coords' && timeSrc === 'manual'){
+    // If virtual clock hasn’t been seeded (e.g., after refresh), seed it now.
+    if (virtualNowMs == null) {
+      const off = state.manualOffsetGuess ?? approxOffsetFromLongitude(curLoc.lon);
+      const dt = buildUTCFromLocalParts(state.manualDate, state.manualTime, off);
+      if (dt && !isNaN(dt)) virtualNowMs = dt.getTime();
+    }
+    // If still null (e.g., fields empty), last resort: don’t crash—use current UTC once, then tick.
+    if (virtualNowMs == null) virtualNowMs = Date.now();
+    return new Date(virtualNowMs);
   }
 
-  // Outputs (unchanged)
-  document.getElementById('srOut').innerHTML   = `<span class="value">${fmtHHMM(sr)}</span>`;
-  document.getElementById('ssOut').innerHTML   = `<span class="value">${fmtHHMM(ss)}</span>`;
-  document.getElementById('noonOut').innerHTML = `<span class="value">${fmtHHMM(noon)}</span>`;
+  // Device modes
+  return new Date();
 }
+
   function tick(){
     if (curLoc.lat==null || curLoc.lon==null) return;
-    const nowLocal = new Date();
-    const civilDisplay = state.useDeviceTZ ? nowLocal
-      : new Date(nowLocal.getTime() - (deviceOffsetHours() - state.manualOffset) * 3600000);
-    const map = mapToSunClock(nowLocal, curLoc.lat, curLoc.lon);
 
-    // Theme switcher: Day -> light, Night -> dark (polar handled too)
+    if (virtualNowMs != null) virtualNowMs += 1000;
+
+    const nowRef = nowSource();
+    const map = mapToSunClock(nowRef, curLoc.lat, curLoc.lon);
+
     applyTheme(map.mode.startsWith('Day') ? 'light' : 'dark');
+    
+    // --- Update the big Sun Clock digits ---
+const sunStr = Number.isFinite(map.sunHours) ? hoursToHHMMSS(map.sunHours) : '--:--:--';
+const sunEl = document.getElementById('sunTime');
+if (sunEl && sunEl.textContent !== sunStr) {
+  // Nudge a tiny reflow to avoid rare placeholder caching in some Android WebViews
+  sunEl.style.transform = 'translateZ(0)';
+  sunEl.textContent = sunStr;
+}
 
-    $('#sunTime').textContent = hoursToHHMMSS(map.sunHours);
-    $('#civilTime').textContent = civilDisplay.toLocaleString(undefined, {weekday:'short', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    const off = getActiveOffsetHours();
+const isManual = (state.locsrc === 'coords' && state.timeMode === 'manual');
+$('#civilTime').textContent = isManual
+  ? fmtFull_withOffset(nowRef, off)                // manual: format in manual local time
+  : nowRef.toLocaleString(undefined, {             // device modes: normal formatting
+      weekday:'short', year:'numeric', month:'short', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', second:'2-digit'
+    });
     applyBadges(map.mode, curLoc.label);
-    updateBand(map.sr, map.ss, map.noon, nowLocal);
+    updateBand(map.sr, map.ss, map.noon, nowRef, curLoc.lat, curLoc.lon);
   }
   function startLoop(){ if (timer) clearInterval(timer); timer = setInterval(tick, 1000); tick(); }
+
+  function combineDateTime(dateStr, timeStr){
+    if (!dateStr || !timeStr) return null;
+    return new Date(`${dateStr}T${timeStr}`);
+  }
 
   async function initLocationFlow(){
     const src = ($$('input[name="locsrc"]').find(r=>r.checked)||{}).value || 'gps';
@@ -862,12 +976,41 @@
       const loc = await acquireLocation(src);
       curLoc = {...loc};
       state.locsrc = src; state.lat = curLoc.lat; state.lon = curLoc.lon; state.label = curLoc.label || '';
+
+      if (src === 'coords'){
+        const timeSrc = ($$('input[name="timesrc"]').find(r=>r.checked)||{}).value || 'device';
+        state.timeMode = timeSrc;
+
+        if (timeSrc === 'manual'){
+          const d = $('#manualDate').value;
+          const t = $('#manualTime').value;
+          try {
+            const off = approxOffsetFromLongitude(curLoc.lon);
+            const dtUTC = buildUTCFromLocalParts(d, t, off);
+            if (!dtUTC || isNaN(dtUTC)) throw new Error();
+            state.manualDate = d; state.manualTime = t;
+            state.manualOffsetGuess = off;
+            virtualNowMs = dtUTC.getTime();
+          } catch {
+            alert('Please provide a valid manual date & time.');
+            return;
+          }
+        } else {
+          state.manualDate = null; state.manualTime = null; state.manualOffsetGuess = null;
+          virtualNowMs = null;
+        }
+      } else {
+        state.timeMode = 'device';
+        state.manualDate = null; state.manualTime = null; state.manualOffsetGuess = null;
+        virtualNowMs = null;
+      }
+
       store.set(state);
       startLoop();
     } catch(e){
       if (src === 'gps') {
         $$('input[name="locsrc"]').forEach(r=>{ if (r.value==='coords') r.checked = true; });
-        updatePanels();
+        showCoordPanels();
         alert('Location permission denied or unavailable. Please enter a location manually or use IP.');
       } else {
         alert('Failed to get location: ' + e.message);
@@ -877,14 +1020,15 @@
 
   $('#applyBtn').addEventListener('click', initLocationFlow);
   $('#resetBtn').addEventListener('click', ()=>{
-    state = { locsrc:'gps', lat:null, lon:null, useDeviceTZ:true, manualOffset:0 };
+    state = { locsrc:'gps', lat:null, lon:null, label:'', timeMode:'device', manualDate:null, manualTime:null, manualOffsetGuess:null };
     store.set(state);
     $$('input[name="locsrc"]').forEach(r=> r.checked = (r.value==='gps'));
-    $('#useDeviceTZ').checked = true; $('#tzOffset').value = 0; $('#tzOffset').disabled = true;
-    updatePanels();
+    $$('input[name="timesrc"]').forEach(r=> r.checked = (r.value==='device'));
+    $('#manualDate').value = ''; $('#manualTime').value = '';
+    $('#coordPanel').style.display = 'none';
+    virtualNowMs = null;
     initLocationFlow();
   });
-  $('#tzOffset').addEventListener('change', e=>{ state.manualOffset = parseFloat(e.target.value||'0')||0; store.set(state); tick(); });
 
   // ---------- Manual Query (Civil → Sun) ----------
   $('#mqUseNow').addEventListener('change', e=>{
@@ -898,11 +1042,6 @@
     const v = ($$('input[name="mqlocsrc"]').find(x=>x.checked)||{}).value;
     $('#mqCoordPanel').style.display = v==='coords' ? '' : 'none';
   }));
-
-  function combineDateTime(dateStr, timeStr){
-    if (!dateStr || !timeStr) return null;
-    return new Date(`${dateStr}T${timeStr}`);
-  }
 
   $('#mqRun').addEventListener('click', ()=>{
     let dt;
