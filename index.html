@@ -13,7 +13,7 @@
 
   <!-- PWA (optional if using APK via Capacitor, safe to keep) -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b0f14">
+  <meta name="theme-color" content="#0b0f14" id="themeColorMeta">
 
   <style>
     :root {
@@ -41,15 +41,16 @@
     *, *::before, *::after { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
-  margin: 0;
-  font-family: var(--font-sans);
-  background: linear-gradient(120deg, #0f1530 0%, #36142d 100%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+      margin: 0;
+      font-family: var(--font-sans);
+      background: linear-gradient(120deg, #0f1530 0%, #36142d 100%);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background 0.6s ease, color 0.3s ease;
+    }
 
     .wrap { max-width: 1050px; margin: 32px auto; padding: 0 16px; }
     .grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; animation: fadeIn .8s ease-out; }
@@ -63,15 +64,15 @@
       border: 1px solid var(--border);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
     }
-    
     @media (max-width: 900px) {
-  .card {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: rgba(22, 27, 34, 0.88); /* more opaque */
-  }
-}
+      .card {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(22, 27, 34, 0.88);
+      }
+    }
 
     .title {
       font-weight: 700; letter-spacing: .4px; margin: 0 0 16px;
@@ -88,7 +89,7 @@
     .badge.ok { color: var(--ok); border-color: rgba(63,185,80,.3); }
     .badge.warn { color: var(--warn); border-color: rgba(210,153,34,.3); }
 
-    /* Band */
+    /* Band (KEEP EXACT SAME ON BOTH THEMES) */
     .band-container { flex:1; min-width:260px; display:flex; flex-direction:column; gap:8px; }
     .band {
       position: relative; height: 20px; border-radius: 999px; overflow: hidden;
@@ -153,6 +154,251 @@
       .grid { grid-template-columns: 1fr; }
       .clock { flex-direction: column; align-items: flex-start; }
     }
+
+    /* -------------------------------------------------- */
+    /*  Sun-3  –  “Aurora Glass”  dark skin (Sep 2025)    */
+    /* -------------------------------------------------- */
+    body {
+      background:
+        radial-gradient(ellipse at 70% 20%, #0f1b3a 0%, #0a0f1c 45%),
+        radial-gradient(ellipse at 30% 80%, #2b0f24 0%, #0a0f1c 45%),
+        linear-gradient(125deg, #020308 0%, #0f1b3a 50%, #020308 100%);
+      background-attachment: fixed;
+      background-size: 200% 200%;
+      animation: aurora 24s ease-in-out infinite;
+    }
+    @keyframes aurora {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .card {
+      background: rgba(18, 22, 32, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow:
+        0 0 0 1px rgba(88, 166, 255, 0.12),
+        0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 0 1px rgba(88, 166, 255, 0.25),
+        0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .title {
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(230, 237, 243, 0.85);
+      text-shadow: 0 0 6px rgba(88, 166, 255, 0.4);
+    }
+
+    .digits {
+      background: linear-gradient(135deg, #ffffff 0%, #a8d0ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow:
+        0 0 10px rgba(168, 208, 255, 0.6),
+        0 0 30px rgba(88, 166, 255, 0.3);
+    }
+
+/* Shared base pill */
+.band {
+  position: relative;
+  height: 24px;
+  border-radius: 999px;
+  overflow: hidden;
+  outline: 1px solid var(--border);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.35);
+}
+
+/* Dark theme pill (pure black sides) */
+.theme-dark .band {
+  background: #000;
+}
+
+/* Light theme pill (gray sides) */
+.theme-light .band {
+  background: #ccc; /* adjust shade if you want lighter/darker */
+}
+
+.band .day {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #ffd166 0%, #58a6ff 50%, #f77f00 100%);
+  box-shadow: 0 0 12px rgba(88,166,255,0.45);
+  opacity: 0.95;
+  z-index: 1;
+}
+
+.band .marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 6px;
+  margin-left: -3px;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 0 10px 3px #fff, 0 0 20px 6px rgba(255,255,255,0.5);
+  animation: pulse 2s infinite ease-in-out;
+  z-index: 2;
+}
+
+    .field input,
+    .field select,
+    .btn {
+      background: rgba(13, 17, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, #58a6ff 0%, #3d8bfc 100%);
+      border: none;
+      color: #0d1117;
+      font-weight: 700;
+    }
+    .btn.primary:hover {
+      background: linear-gradient(135deg, #76baff 0%, #58a6ff 100%);
+      box-shadow: 0 0 16px rgba(88, 166, 255, 0.4);
+    }
+    .badge {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+    }
+    .badge.ok  { color: #3ddc84; border-color: rgba(61, 220, 132, 0.35); }
+    .badge.warn{ color: #ffb74d; border-color: rgba(255, 183, 77, 0.35); }
+
+    .footer {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    /* -------------------------------------------------- */
+    /*                 LIGHT THEME OVERRIDES              */
+    /*  (Auto-applies in daytime via SunCalc mapping)     */
+    /* -------------------------------------------------- */
+    body.theme-light {
+      /* Daylight sky with gentle moving glow */
+      --bg: #f5f7fb;
+      --card: rgba(255,255,255,0.65);
+      --border: rgba(0,0,0,0.08);
+      --text-primary: #0b1220;
+      --text-secondary: #475066;
+      --text-muted: #6b7280;
+      --accent-primary: #1463ff;
+      --accent-glow: rgba(20,99,255,0.18);
+
+      color: var(--text-primary);
+      background:
+        radial-gradient(1200px 800px at 20% 15%, rgba(255, 223, 128, 0.35), transparent 60%),
+        radial-gradient(900px 600px at 80% 10%, rgba(116, 187, 255, 0.35), transparent 60%),
+        linear-gradient(180deg, #eaf2ff 0%, #f8fbff 35%, #ffffff 100%);
+      background-attachment: fixed;
+      background-size: 140% 140%;
+      animation: dayGlow 24s ease-in-out infinite;
+    }
+    @keyframes dayGlow {
+      0%   { background-position: 0% 0%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    /* Cards: airy glass on light */
+    body.theme-light .card {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow:
+        0 0 0 1px rgba(20, 99, 255, 0.05),
+        0 10px 30px rgba(18, 40, 80, 0.08);
+    }
+    body.theme-light .card:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 0 1px rgba(20, 99, 255, 0.10),
+        0 14px 40px rgba(18, 40, 80, 0.12);
+    }
+
+    /* Headings: crisper, no neon glow */
+    body.theme-light .title {
+      color: var(--text-secondary);
+      text-shadow: none;
+    }
+
+    /* DIGITS: “shine black” in light theme */
+    body.theme-light .digits {
+      background: none;
+      -webkit-background-clip: initial;
+      -webkit-text-fill-color: #000;
+      color: #000;
+      text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.55),
+        0 6px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Keep the linear pill EXACT SAME: no .theme-light overrides for .band/.day/.marker */
+
+    /* “Time display” chips: lighter */
+    body.theme-light .time-display {
+      background: rgba(255,255,255,0.55);
+      border-color: rgba(0,0,0,0.06);
+    }
+
+    /* Inputs/Buttons on light */
+    body.theme-light .field input,
+    body.theme-light .field select,
+    body.theme-light .btn {
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-primary);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    body.theme-light .field input::placeholder { color: #9aa3b2; }
+    body.theme-light .field input:focus,
+    body.theme-light .field select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    body.theme-light .pill:hover { background: rgba(0,0,0,0.04); }
+    body.theme-light .pill input[type="radio"],
+    body.theme-light .pill input[type="checkbox"] { background: #fff; border-color: rgba(0,0,0,0.12); }
+
+    body.theme-light .btn { background: #ffffff; }
+    body.theme-light .btn.primary {
+      background: linear-gradient(135deg, #2c7bff 0%, #1463ff 100%);
+      color: #fff;
+      border: none;
+      box-shadow: 0 6px 14px rgba(20, 99, 255, 0.25);
+    }
+    body.theme-light .btn.primary:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 8px 18px rgba(20, 99, 255, 0.30);
+    }
+
+    body.theme-light .badge {
+      background: rgba(0,0,0,0.04);
+      border-color: rgba(0,0,0,0.08);
+    }
+    body.theme-light .badge.ok  { color: #179d58; border-color: rgba(23,157,88,0.25); }
+    body.theme-light .badge.warn{ color: #b36b00; border-color: rgba(179,107,0,0.25); }
+
+    body.theme-light .footer {
+      color: rgba(17, 27, 45, 0.55);
+    }
+    body.theme-light a { color: var(--accent-primary); }
   </style>
 </head>
 <body>
@@ -485,20 +731,17 @@
       const f = (nowMs - chosen.start.getTime()) / (chosen.end.getTime() - chosen.start.getTime());
       const sunHours = 18 + 12 * f; // will naturally wrap >24 in display
       const sr = chosen.end, ss = chosen.start;
-      // Pick the “today” noon for info display (t0)
       const noon = t0.solarNoon;
       return { sunHours, sr, ss, noon, mode:'Night', polar:false };
     }
   }
 
   function mapFromSunClock(sunHours, date, lat, lon){
-    // Same UTC-midnight anchoring to avoid TZ issues
     const u = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
     const day0 = new Date(u);
     const t0 = SunCalc.getTimes(day0, lat, lon);
     const valid = d => d instanceof Date && !isNaN(d);
 
-    // Polar ambiguity
     if (!valid(t0.sunrise) || !valid(t0.sunset)) return { error: "Conversion is ambiguous in polar regions (24h day/night)." };
 
     if (sunHours >= 6 && sunHours < 18){
@@ -508,7 +751,6 @@
     } else {
       const fraction = ((sunHours - 18 + 24) % 24) / 12;
 
-      // Two night halves: evening (today SS -> tomorrow SR) or morning (yesterday SS -> today SR)
       if (sunHours >= 18){ // evening
         const t1 = SunCalc.getTimes(new Date(u + 24*3600e3), lat, lon);
         if (!valid(t0.sunset) || !valid(t1.sunrise)) return { error: "Night conversion unavailable." };
@@ -524,7 +766,7 @@
   }
 
   function hoursToHHMMSS(h){
-    const wrap = mod(h, 24);
+    const wrap = ((h % 24) + 24) % 24;
     const hh = Math.floor(wrap);
     const mm = Math.floor((wrap - hh)*60);
     const ss = Math.floor((((wrap - hh)*60) - mm)*60);
@@ -537,6 +779,16 @@
     let width = (end-start)/24*100;
     if (width < 0) width = 0;
     return {left, width};
+  }
+
+  // ---------- THEME HANDLING (auto by sun) ----------
+  let currentTheme = null;
+  function applyTheme(theme){
+    if (theme === currentTheme) return;
+    currentTheme = theme;
+    document.body.classList.toggle('theme-light', theme === 'light');
+    const meta = document.getElementById('themeColorMeta');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#f5f7fb' : '#0b0f14');
   }
 
   // ---------- Live loop ----------
@@ -552,24 +804,51 @@
     $('#tzBadge').textContent = 'TZ: ' + tz;
   }
   function updateBand(sr, ss, noon, now){
-    const markerLeft = (now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600)/24*100;
-    $('#nowMarker').style.left = markerLeft + '%';
+  // Move the white "now" marker across 24h
+  const nowH = now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600;
+  const markerLeft = (nowH / 24) * 100;
+  document.getElementById('nowMarker').style.left = markerLeft + '%';
 
-    const pos = bandPositions(sr, ss);
-    $('#daySegment').style.left = pos.left + '%';
-    $('#daySegment').style.width = pos.width + '%';
+  // --- Day length for the sunrise's day (robust for "night" case) ---
+  // sr = next sunrise (night) or today's sunrise (day).
+  // Get that day's official sunrise/sunset to compute true length.
+  try {
+    const srUTC = Date.UTC(sr.getUTCFullYear(), sr.getUTCMonth(), sr.getUTCDate());
+    const tForSunriseDay = SunCalc.getTimes(new Date(srUTC), curLoc.lat, curLoc.lon);
+    const srDay = tForSunriseDay.sunrise;
+    const ssDay = tForSunriseDay.sunset;
 
-    $('#srOut').innerHTML   = `<span class="value">${fmtHHMM(sr)}</span>`;
-    $('#ssOut').innerHTML   = `<span class="value">${fmtHHMM(ss)}</span>`;
-    $('#noonOut').innerHTML = `<span class="value">${fmtHHMM(noon)}</span>`;
+    let dayLenMs = ssDay.getTime() - srDay.getTime();           // always positive for that day
+    if (!(dayLenMs > 0)) dayLenMs = 12 * 3600e3;                // polar fallback
+
+    const dayLenPct = Math.max(0, Math.min(100, (dayLenMs / (24*3600e3)) * 100));
+    const leftPct   = 50 - (dayLenPct / 2);                     // center the day segment
+
+    const dayEl = document.getElementById('daySegment');
+    dayEl.style.left  = leftPct + '%';
+    dayEl.style.width = dayLenPct + '%';
+  } catch(e) {
+    // Safe fallback (should almost never hit)
+    const dayEl = document.getElementById('daySegment');
+    dayEl.style.left = '25%';
+    dayEl.style.width = '50%';
   }
+
+  // Outputs (unchanged)
+  document.getElementById('srOut').innerHTML   = `<span class="value">${fmtHHMM(sr)}</span>`;
+  document.getElementById('ssOut').innerHTML   = `<span class="value">${fmtHHMM(ss)}</span>`;
+  document.getElementById('noonOut').innerHTML = `<span class="value">${fmtHHMM(noon)}</span>`;
+}
   function tick(){
     if (curLoc.lat==null || curLoc.lon==null) return;
     const nowLocal = new Date();
     const civilDisplay = state.useDeviceTZ ? nowLocal
       : new Date(nowLocal.getTime() - (deviceOffsetHours() - state.manualOffset) * 3600000);
-
     const map = mapToSunClock(nowLocal, curLoc.lat, curLoc.lon);
+
+    // Theme switcher: Day -> light, Night -> dark (polar handled too)
+    applyTheme(map.mode.startsWith('Day') ? 'light' : 'dark');
+
     $('#sunTime').textContent = hoursToHHMMSS(map.sunHours);
     $('#civilTime').textContent = civilDisplay.toLocaleString(undefined, {weekday:'short', year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'});
     applyBadges(map.mode, curLoc.label);
